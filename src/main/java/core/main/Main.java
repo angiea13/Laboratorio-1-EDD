@@ -13,23 +13,27 @@ public final class Main {
     public static void main(String[] args) {
         try (Scanner entrada = new Scanner(System.in);
              ArchivoInstructores archivo = new ArchivoInstructores(Path.of("datos", "instructores.dat"));
-             ArchivoSesiones sesiones = new ArchivoSesiones(Path.of("datos", "sesiones.dat"))) {
-            ejecutarMenu(entrada, new InstructorServicio(archivo), new ReporteServicio(archivo, sesiones));
+             ArchivoSesiones sesiones = new ArchivoSesiones(Path.of("datos", "sesiones.dat"));
+             ArchivoAprendices aprendices = new ArchivoAprendices(Path.of("datos", "aprendices.dat"))) {
+            ejecutarMenu(entrada, new InstructorServicio(archivo), new ReporteServicio(archivo, sesiones),
+                    new AprendizServicio(aprendices));
         } catch (IOException error) {
             System.err.println("No fue posible abrir el archivo de instructores: " + error.getMessage());
         }
     }
 
-    private static void ejecutarMenu(Scanner entrada, InstructorServicio servicio, ReporteServicio reportes) {
+    private static void ejecutarMenu(Scanner entrada, InstructorServicio servicio, ReporteServicio reportes,
+                                     AprendizServicio aprendices) {
         String opcion;
         do {
             System.out.println("\n--- Gestión de instructores ---");
             System.out.println("1. Registrar  2. Consultar  3. Modificar  4. Eliminar  5. Listar");
-            System.out.println("6. Instructores disponibles  7. Sesiones programadas  0. Salir");
+            System.out.println("6. Instructores disponibles  7. Sesiones programadas");
+            System.out.println("8. Reiniciar sesiones mensuales de aprendices  0. Salir");
             System.out.print("Opción: ");
             opcion = entrada.nextLine().trim();
             try {
-                procesar(opcion, entrada, servicio, reportes);
+                procesar(opcion, entrada, servicio, reportes, aprendices);
             } catch (ValidacionException error) {
                 System.out.println("Aviso: " + error.getMessage());
             } catch (IOException error) {
@@ -38,7 +42,8 @@ public final class Main {
         } while (!"0".equals(opcion));
     }
 
-    private static void procesar(String opcion, Scanner entrada, InstructorServicio servicio, ReporteServicio reportes)
+    private static void procesar(String opcion, Scanner entrada, InstructorServicio servicio,
+                                 ReporteServicio reportes, AprendizServicio aprendices)
             throws IOException, ValidacionException {
         switch (opcion) {
             case "1" -> {
@@ -67,6 +72,10 @@ public final class Main {
             }
             case "6" -> mostrarInstructoresDisponibles(entrada, reportes);
             case "7" -> mostrarSesionesProgramadas(entrada, reportes);
+            case "8" -> {
+                int cantidad = aprendices.reiniciarContadoresMensuales();
+                System.out.println("Reinicio completado. Contadores reiniciados: " + cantidad + ".");
+            }
             case "0" -> System.out.println("Hasta luego.");
             default -> System.out.println("Aviso: opción no válida.");
         }
