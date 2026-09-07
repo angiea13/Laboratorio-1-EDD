@@ -12,9 +12,9 @@ import java.util.Map;
 
 /** Archivo binario de aprendices con registros de longitud fija. */
 public final class ArchivoAprendices implements Closeable {
-    private static final int NOMBRE = 80;
-    private static final int CEDULA = 24;
-    private static final int TELEFONO = 20;
+    private static final int NOMBRE = 100;
+    private static final int CEDULA = 4;
+    private static final int TELEFONO = 8;
     private static final int ESPECIALIDAD = 40;
     private static final int MAX_ESPECIALIDADES = 10;
     private static final int TAM_REGISTRO = (NOMBRE + CEDULA + TELEFONO) * 2 + 4
