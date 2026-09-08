@@ -9,6 +9,7 @@ public class HelloController {
 
     @FXML
     public void initialize() {
-        label.setText("Funciona");
+        label.setText("¡Bienvenido al Sistema de Información STRUCTART!");
     }
+        
 }

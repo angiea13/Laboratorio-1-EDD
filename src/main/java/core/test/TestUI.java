@@ -9,6 +9,7 @@ public class TestUI extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Scene scene = new Scene(FXMLLoader.load(getClass().getResource("hello-view.fxml")));
+        stage.setTitle("STRUCTART Integrated Systems (SARIS)");
         stage.setScene(scene);
         stage.show();
     }
