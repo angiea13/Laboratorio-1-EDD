@@ -1,149 +1,83 @@
 package core.main;
 
-import java.io.Closeable;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.LinkedHashSet;
+import core.file.Management;
+import java.io.*;
+import java.util.HashMap;
 
-/** Archivo indexado binario con registros de longitud fija y borrado lógico. */
-public final class ArchivoInstructores implements Closeable {
-    private static final int NOMBRE = 80, CEDULA = 24, ESPECIALIDAD = 60, TELEFONO = 20;
-    private static final int TAM_REGISTRO = 1 + (NOMBRE + CEDULA + ESPECIALIDAD + TELEFONO) * 2 + 4;
-    private final RandomAccessFile archivo;
-    private final Map<String, Long> indice = new LinkedHashMap<>();
-    private final Map<String, Set<String>> indiceEspecialidad = new LinkedHashMap<>();
+/** Operaciones de instructores para conectar después con el menú gráfico. */
+public class ArchivoInstructores {
+    private String dataFile;
+    private String indexFile;
+    private HashMap<Integer, Long> index = new HashMap<>();
+    private Management management = new Management();
 
-    public ArchivoInstructores(Path ruta) throws IOException {
-        Path padre = ruta.toAbsolutePath().getParent();
-        if (padre != null) Files.createDirectories(padre);
-        archivo = new RandomAccessFile(ruta.toFile(), "rw");
-        cargarIndice();
-    }
-
-    public synchronized boolean existe(String cedula) { return indice.containsKey(cedula); }
-
-    public synchronized void agregar(Instructor instructor) throws IOException {
-        long posicion = archivo.length();
-        archivo.seek(posicion);
-        escribirRegistro(instructor, true);
-        indice.put(instructor.cedula(), posicion);
-        indexarEspecialidad(instructor);
-    }
-
-    public synchronized Optional<Instructor> buscar(String cedula) throws IOException {
-        Long posicion = indice.get(cedula);
-        if (posicion == null) return Optional.empty();
-        archivo.seek(posicion);
-        return Optional.of(leerRegistro());
-    }
-
-    public synchronized void actualizar(Instructor instructor) throws IOException {
-        Instructor anterior = buscar(instructor.cedula()).orElseThrow();
-        desindexarEspecialidad(anterior);
-        archivo.seek(indice.get(instructor.cedula()));
-        escribirRegistro(instructor, true);
-        indexarEspecialidad(instructor);
-    }
-
-    public synchronized boolean eliminar(String cedula) throws IOException {
-        Long posicion = indice.remove(cedula);
-        if (posicion == null) return false;
-        archivo.seek(posicion);
-        Instructor anterior = leerRegistro();
-        desindexarEspecialidad(anterior);
-        archivo.seek(posicion);
-        archivo.writeBoolean(false);
-        archivo.getFD().sync();
-        return true;
-    }
-
-    public synchronized List<Instructor> listar() throws IOException {
-        List<Instructor> resultado = new ArrayList<>();
-        for (String cedula : indice.keySet()) resultado.add(buscar(cedula).orElseThrow());
-        return resultado;
-    }
-
-    /** Consulta por índice de especialidad; no recorre el archivo completo. */
-    public synchronized List<Instructor> buscarDisponiblesPorEspecialidad(String especialidad) throws IOException {
-        Set<String> cedulas = indiceEspecialidad.getOrDefault(normalizar(especialidad), Set.of());
-        List<Instructor> disponibles = new ArrayList<>();
-        for (String cedula : cedulas) {
-            Instructor instructor = buscar(cedula).orElseThrow();
-            if (instructor.sesionesRealizadas() < 15) disponibles.add(instructor);
+    public ArchivoInstructores(String dataFile, String indexFile) throws IOException {
+        if (new File(dataFile).getCanonicalPath().equals(new File(indexFile).getCanonicalPath())) {
+            throw new IOException("El archivo de datos y el índice deben ser diferentes.");
         }
-        return disponibles;
+        this.dataFile = dataFile;
+        this.indexFile = indexFile;
+        // Reconstruye al abrir para recuperar también un índice perdido o desactualizado.
+        // Después, cada consulta usa el HashMap y seek(), sin recorrer todo el archivo.
+        if (new File(dataFile).exists()) {
+            try (RandomAccessFile file = new RandomAccessFile(dataFile, "r")) {
+                if (file.length() % 154 != 0) throw new IOException("Archivo de instructores con registros errados.");
+                while (file.getFilePointer() < file.length()) {
+                    long position = file.getFilePointer();
+                    int id = file.readInt();
+                    if (id == 0 || index.containsKey(id)) throw new IOException("Cédula incorrecta o duplicada en archivo.");
+                    if (id > 0) index.put(id, position);
+                    file.seek(position + 154);
+                }
+            }
+        } else if (new File(indexFile).exists() && new File(indexFile).length() > 0) {
+            throw new IOException("Archivo de instructores no encontrado; existe un índice con datos.");
+        }
+        saveIndex();
     }
 
-    private void cargarIndice() throws IOException {
-        if (archivo.length() % TAM_REGISTRO != 0)
-            throw new IOException("El archivo de instructores contiene registros incompletos.");
-        for (long posicion = 0; posicion < archivo.length(); posicion += TAM_REGISTRO) {
-            archivo.seek(posicion);
-            boolean activo = archivo.readBoolean();
-            Instructor instructor = leerCampos();
-            if (activo) {
-                indice.put(instructor.cedula(), posicion);
-                indexarEspecialidad(instructor);
+    private void saveIndex() throws IOException {
+        try (DataOutputStream file = new DataOutputStream(new FileOutputStream(indexFile))) {
+            for (Integer id : index.keySet()) {
+                file.writeInt(id);
+                file.writeLong(index.get(id));
             }
         }
     }
 
-    private void indexarEspecialidad(Instructor instructor) {
-        indiceEspecialidad.computeIfAbsent(normalizar(instructor.especialidad()), clave -> new LinkedHashSet<>())
-                .add(instructor.cedula());
+    // Solo acepta dígitos. La cédula mantiene el tipo int del proyecto original.
+    private boolean numeric(String value) {
+        if (value == null || value.trim().isEmpty()) return false;
+        value = value.trim();
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) < '0' || value.charAt(i) > '9') return false;
+        }
+        return true;
     }
 
-    private void desindexarEspecialidad(Instructor instructor) {
-        String clave = normalizar(instructor.especialidad());
-        Set<String> cedulas = indiceEspecialidad.get(clave);
-        if (cedulas != null) {
-            cedulas.remove(instructor.cedula());
-            if (cedulas.isEmpty()) indiceEspecialidad.remove(clave);
+    public void guardar(String cedula, String nombre, String especialidad, String telefono,
+                        short sesiones, boolean modificar) throws IOException {
+        if (!numeric(cedula) || !numeric(telefono)) {
+            System.out.println("Error: cédula y teléfono son obligatorios y deben contener solo dígitos.");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(cedula.trim());
+            long phone = Long.parseLong(telefono.trim());
+            if (modificar) management.updateInstructor(id, nombre, especialidad, phone, sesiones, index, dataFile);
+            else management.addInstructor(id, nombre, especialidad, phone, sesiones, index, dataFile);
+            saveIndex();
+        } catch (NumberFormatException e) {
+            System.out.println("Error: cédula o teléfono fuera del rango numérico admitido.");
         }
     }
 
-    private String normalizar(String valor) { return valor.trim().toLowerCase(java.util.Locale.ROOT); }
-
-    private Instructor leerRegistro() throws IOException {
-        if (!archivo.readBoolean()) throw new EOFException("El registro fue eliminado.");
-        return leerCampos();
+    public String[] consultar(int cedula) {
+        return management.getInstructor(cedula, index, dataFile);
     }
 
-    private Instructor leerCampos() throws IOException {
-        return new Instructor(leerTexto(NOMBRE), leerTexto(CEDULA), leerTexto(ESPECIALIDAD), leerTexto(TELEFONO), archivo.readInt());
+    public void eliminar(int cedula) throws IOException {
+        management.deleteInstructor(cedula, index, dataFile);
+        saveIndex();
     }
-
-    private void escribirRegistro(Instructor instructor, boolean activo) throws IOException {
-        archivo.writeBoolean(activo);
-        escribirTexto(instructor.nombre(), NOMBRE); escribirTexto(instructor.cedula(), CEDULA);
-        escribirTexto(instructor.especialidad(), ESPECIALIDAD); escribirTexto(instructor.telefono(), TELEFONO);
-        archivo.writeInt(instructor.sesionesRealizadas());
-        archivo.getFD().sync();
-    }
-
-    private void escribirTexto(String texto, int longitud) throws IOException {
-        if (texto.length() > longitud) texto = texto.substring(0, longitud);
-        archivo.writeChars(texto);
-        for (int i = texto.length(); i < longitud; i++) archivo.writeChar('\0');
-    }
-
-    private String leerTexto(int longitud) throws IOException {
-        StringBuilder texto = new StringBuilder(longitud);
-        for (int i = 0; i < longitud; i++) {
-            char caracter = archivo.readChar();
-            if (caracter != '\0') texto.append(caracter);
-        }
-        return texto.toString();
-    }
-
-    @Override public void close() throws IOException { archivo.close(); }
 }
