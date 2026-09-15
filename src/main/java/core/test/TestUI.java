@@ -1,62 +1,264 @@
 package core.test;
 
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class TestUI extends Application {
 
     @Override
     public void start(Stage stage) {
         
-        Pane pantallaInicio = new Pane();
-        Label horaFecha = new Label();
+        String VERSION = "V0.0.1";
 
-        LocalDateTime fechaHora = LocalDateTime.now();
-        DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd MMM de yyyy, HH:mm:ss");
-        String textoFecha = fechaHora.format(formatoFechaHora);
-        
-        horaFecha.setText(textoFecha);
-
-        horaFecha.setLayoutX(967);
-        horaFecha.setLayoutY(17);
-
-        pantallaInicio.getChildren().add(horaFecha);
-
-
-        Color bgColor = Color.web("#E7E7E7");
-
-        Label label = new Label("¡Bienvenido al Sistema de Información STRUCTART!");
-
-        VBox root = new VBox(10);
-        root.setAlignment(javafx.geometry.Pos.CENTER);
-
-        root.setBackground(
-            new Background(
-            new BackgroundFill(bgColor, null, null)
-            )
+        Font regular = Font.loadFont(
+            getClass().getResourceAsStream("/VerdanaPro-Regular.ttf"),
+            20
         );
 
-        root.getChildren().addAll(label, pantallaInicio);
+        Font semiBold = Font.loadFont(
+            getClass().getResourceAsStream("/VerdanaPro-SemiBold.ttf"),
+            20
+        );
 
-        Scene scene = new Scene(root);
+        Font bold = Font.loadFont(
+            getClass().getResourceAsStream("/VerdanaPro-Bold.ttf"),
+            20
+        );
+
+        Font condBlack = Font.loadFont(
+            getClass().getResourceAsStream("/VerdanaPro-CondBlack.ttf"),
+            20
+        );
+
+        Font condBold = Font.loadFont(
+            getClass().getResourceAsStream("/VerdanaPro-CondBold.ttf"),
+            20
+        );
+        Background bg = new Background((new BackgroundFill(Color.web("#e7e7e7"),null, null)));
+
+        //ANCHORPANE PERMITE CALCULAR POSICIONES CON OFFSETS CON RESPECTO A LOS BORDES DEL PANE
+        //AQUÍ SE ESTÁN DESCRIBIENDO LOS ELEMENTOS DE LA PANTALLA DE INCICIO/BIENVENIDA
+        AnchorPane pantallaInicio = new AnchorPane();
+        pantallaInicio.setBackground(bg);
+
+        ImageView esquinaIzq = new ImageView(
+            new Image(getClass().getResourceAsStream("/corner1.png"))
+        );
+
+        ImageView esquinaDer = new ImageView(
+            new Image(getClass().getResourceAsStream("/corner2.png"))
+        );
+
+        AnchorPane.setLeftAnchor(esquinaIzq, 0.0);
+        AnchorPane.setTopAnchor(esquinaIzq, 0.0);
+
+        AnchorPane.setRightAnchor(esquinaDer, 0.0);
+        AnchorPane.setBottomAnchor(esquinaDer, 0.0);
+
+        //LABEL HORAFECHA INDICA LA FECHA/HORA EN EL BORDE SUPERIOR DERECHO DE LA PANTALLA
+        Label horaFecha = new Label();
+
+        DateTimeFormatter formatoFechaHora =
+            DateTimeFormatter.ofPattern("dd MMMM 'de' yyyy, HH:mm:ss");
+
+        horaFecha.setTextFill(Color.web("#A6A6A6"));
+        horaFecha.setFont(Font.font(regular.getFamily(), 20));
+
+        Timeline reloj = new Timeline(
+            new KeyFrame(Duration.ZERO, e -> {
+                horaFecha.setText(
+                    LocalDateTime.now().format(formatoFechaHora)
+                );
+            }),
+            new KeyFrame(Duration.seconds(1))
+        );
+
+        reloj.setCycleCount(Timeline.INDEFINITE);
+        reloj.play();
+
+        AnchorPane.setTopAnchor(horaFecha, 17.0);
+        AnchorPane.setRightAnchor(horaFecha, 20.0);
+
+        //VERSION
+        Label version = new Label(VERSION);
+        version.setTextFill(Color.web("#A6A6A6"));
+        version.setFont(Font.font(semiBold.getFamily(), 20));
+
+        AnchorPane.setBottomAnchor(version, 17.0);
+        AnchorPane.setLeftAnchor(version, 20.0);
+
+        //STACKPANE PARA QUE NO SE TAPEN LAS COSAASSSSS
+        StackPane logo = new StackPane();
+
+        //AQUÍ ESTÁ EL RECTANGULITO DEL LOGO
+        Rectangle logoRect = new Rectangle();
+
+        logoRect.setWidth(1040);
+        logoRect.setHeight(134);
+
+        logoRect.setFill(Color.web("#fbeaff"));
+
+        logoRect.setArcWidth(44);
+        logoRect.setArcHeight(44);
+
+        //AQUÍ ESTÁ EL LOGO
+        Label structart = new Label();
+
+        structart.setText("STRUCTART SYSTEMS ©");
+        structart.setFont(Font.font(condBold.getFamily(), 65));
+        structart.setStyle("""
+            -fx-text-fill: linear-gradient(to right, #8c52ff, #5ce1e6);
+        """);
+
+        logo.getChildren().addAll(logoRect, structart);
+
+        AnchorPane.setTopAnchor(logo, 172.0);
+        AnchorPane.setLeftAnchor(logo, 200.0);
+
+        //OTRO STACKPANE PERO PARA LOS COSITOS DE LOGIN
+        
+        StackPane fieldUser = new StackPane();
+        StackPane fieldPswrd = new StackPane();
+
+        //AQUÍ ESTÁ EL RECTANGULITO DEL USER/PASSWORD
+        Rectangle fondoField = new Rectangle();
+
+        fondoField.setWidth(352);
+        fondoField.setHeight(69);
+
+        fondoField.setFill(Color.web("#fbeaff"));
+
+        fondoField.setArcWidth(44);
+        fondoField.setArcHeight(44);
+
+        //AQUÍ ESTÁ EL CAMPO DE USUARIO
+        TextField usuario = new TextField();
+
+        usuario.setPromptText("Usuario");
+        usuario.setFont(Font.font(regular.getFamily(), 30));
+        usuario.setStyle("""
+            -fx-background-color: transparent;
+            -fx-border-color: transparent;
+            -fx-text-fill: #333333;
+            -fx-padding: 0;
+            -fx-prompt-text-fill: #d9d9d9;
+        """);
+
+        usuario.setMaxWidth(312);
+
+        fieldUser.getChildren().addAll(fondoField, usuario);
+
+        AnchorPane.setLeftAnchor(fieldUser, 544.0);
+        AnchorPane.setTopAnchor(fieldUser, 370.0);
+
+        PasswordField clave = new PasswordField();
+
+        Rectangle fondoFieldPswrd = new Rectangle();
+        
+        fondoFieldPswrd.setWidth(352);
+        fondoFieldPswrd.setHeight(69);
+
+        fondoFieldPswrd.setFill(Color.web("#fbeaff"));
+
+        fondoFieldPswrd.setArcWidth(44);
+        fondoFieldPswrd.setArcHeight(44);
+
+        clave.setPromptText("Contraseña");
+        clave.setFont(Font.font(regular.getFamily(), 30));
+        clave.setStyle("""
+            -fx-background-color: transparent;
+            -fx-border-color: transparent;
+            -fx-text-fill: #333333;
+            -fx-padding: 0;
+            -fx-prompt-text-fill: #d9d9d9;
+        """);
+//me cansé de comentar perdon
+        clave.setMaxWidth(312);
+
+        fieldPswrd.getChildren().addAll(fondoFieldPswrd, clave);
+
+        AnchorPane.setLeftAnchor(fieldPswrd, 544.0);
+        AnchorPane.setTopAnchor(fieldPswrd, 474.0);
+
+        StackPane loginField = new StackPane();
+        
+        Button login = new Button("INGRESAR");
+
+        Rectangle hoverLogin = new Rectangle(510, 105);
+        hoverLogin.setFill(Color.web("#ff751f"));
+
+        hoverLogin.setArcWidth(45);
+        hoverLogin.setArcHeight(45);
+
+        hoverLogin.setVisible(false);
+
+        login.setPrefWidth(495);
+        login.setPrefHeight(90);
+        login.setFont(Font.font(condBold.getFamily(), 44));
+        login.setStyle("""
+                -fx-background-color: #4954ff;
+                -fx-text-fill: #fbeaff;
+                -fx-background-radius: 20;
+                -fx-border-radius: 20;
+                -fx-border-color: transparent;
+                -fx-padding: 0;
+                -fx-cursor: hand;
+            """);
+
+        login.setOnMouseEntered(e -> {
+            hoverLogin.setVisible(true);
+        });
+
+        // Salir
+        login.setOnMouseExited(e -> {
+            hoverLogin.setVisible(false);
+        });
+
+        loginField.getChildren().addAll(hoverLogin, login);
+
+        AnchorPane.setLeftAnchor(loginField, 472.0);
+        AnchorPane.setTopAnchor(loginField, 599.0);
+
+        pantallaInicio.getChildren().addAll(
+            esquinaIzq, 
+            esquinaDer, 
+            horaFecha, 
+            version, 
+            logo, 
+            fieldUser, 
+            fieldPswrd, 
+            loginField
+        );
+
+        //JAJA. Y TODO ESO UNA SOLA PANTALLA. 254 LÍNEAS. Dios mío
+
+
+
+        Scene scene = new Scene(pantallaInicio, 1440, 810);
 
         stage.setTitle("STRUCTART Integrated Systems (SARIS)");
         stage.setResizable(false);
-
-        stage.setWidth(1440);
-        stage.setHeight(810);
-
         stage.setScene(scene);
         stage.show();
     }
