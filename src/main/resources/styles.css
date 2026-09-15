@@ -28,9 +28,17 @@
     -fx-cursor: hand;
 }
 
-.boton-pequeño-default {
-    -fx-pref-width: 80;
-    -fx-pref-height: 80;
+.boton-mini-default {
+    -fx-pref-width: 60;
+    -fx-pref-height: 60;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.boton-mediano-azul {
+    -fx-pref-width: 245;
+    -fx-pref-height: 245;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-cursor: hand;

@@ -9,11 +9,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -31,12 +28,11 @@ public class PantallaInicio {
     }
 
     public AnchorPane construirPantalla() {
-        Background bg = new Background((new BackgroundFill(Color.web("#e7e7e7"),null, null)));
 
         //ANCHORPANE PERMITE CALCULAR POSICIONES CON OFFSETS CON RESPECTO A LOS BORDES DEL PANE
         //AQUÍ SE ESTÁN DESCRIBIENDO LOS ELEMENTOS DE LA PANTALLA DE INCICIO/BIENVENIDA
         AnchorPane pantallaInicio = new AnchorPane();
-        pantallaInicio.setBackground(bg);
+        pantallaInicio.setBackground(Asset.BACKGROUND);
 
         ImageView esquinaIzq = new ImageView(Asset.esquinaIzq);
 

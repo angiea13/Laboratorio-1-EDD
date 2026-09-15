@@ -1,6 +1,9 @@
 package core.ui;
 
 import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.paint.Color;
 
 public class Asset {
     
@@ -28,5 +31,7 @@ public class Asset {
 
     public static final Image homeHover = new Image(Asset.class.getResourceAsStream("/icons/home_Hover.png"));
     public static final Image backHover = new Image(Asset.class.getResourceAsStream("/icons/back_Hover.png"));
+
+    public static final Background BACKGROUND = new Background((new BackgroundFill(Color.web("#e7e7e7"),null, null)));
 
 }

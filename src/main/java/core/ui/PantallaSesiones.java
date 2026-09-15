@@ -13,25 +13,28 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 
 
-public class PantallaDashboard {
+public class PantallaSesiones {
 
-    Button botonBack, botonSesion, botonInstructor, botonAprendiz;
+    Button botonBack, botonHome, botonAgregar, botonEliminar, botonConsultar;
 
-    public PantallaDashboard() {
+    public PantallaSesiones() {
         this.botonBack = new Button();
-        this.botonSesion = new Button();
-        this.botonInstructor = new Button();
-        this.botonAprendiz = new Button();
+        this.botonHome = new Button();
+        this.botonAgregar = new Button();
+        this.botonEliminar = new Button();
+        this.botonConsultar = new Button();
     }
 
     public AnchorPane construirPantalla() {
 
-        StackPane preguntaConsulta = new StackPane();
+        StackPane promptUsuario = new StackPane();
+        
+        
 
         //ANCHORPANE PERMITE CALCULAR POSICIONES CON OFFSETS CON RESPECTO A LOS BORDES DEL PANE
         //AQUÍ SE ESTÁN DESCRIBIENDO LOS ELEMENTOS DE LA PANTALLA DE INCICIO/BIENVENIDA
-        AnchorPane pantallaDashboard = new AnchorPane();
-        pantallaDashboard.setBackground(Asset.BACKGROUND);
+        AnchorPane pantallaSesiones = new AnchorPane();
+        pantallaSesiones.setBackground(Asset.BACKGROUND);
 
         ImageView esquinaIzq = new ImageView(Asset.esquinaIzq);
         ImageView esquinaDer = new ImageView(Asset.esquinaDer);
@@ -56,39 +59,37 @@ public class PantallaDashboard {
         //AQUÍ ESTÁ EL texto consulta
         Label textoPrompt = new Label();
 
-        textoPrompt.setText("¿Qué desea consultar?");
+        textoPrompt.setText("Seleccione una operación:");
         textoPrompt.setFont(Font.font(Fuente.COND_BOLD_ITALIC.getName(), 44));
         textoPrompt.setTextFill(Color.web("#000000"));
 
-        preguntaConsulta.getChildren().addAll(textoRect, textoPrompt);
+        promptUsuario.getChildren().addAll(textoRect, textoPrompt);
 
-        AnchorPane.setLeftAnchor(preguntaConsulta, 411.0);
-        AnchorPane.setTopAnchor(preguntaConsulta, 191.0);
+        AnchorPane.setLeftAnchor(promptUsuario, 411.0);
+        AnchorPane.setTopAnchor(promptUsuario, 191.0);
 
-        VBox sesion = new VBox();
-        VBox instructor = new VBox();
-        VBox aprendiz = new VBox();
+        VBox agg = new VBox();
+        VBox rmv = new VBox();
+        VBox srch = new VBox();
 
-        ImageView sesionImg = new ImageView(Asset.sesionImg);
+        ImageView agregarImg = new ImageView(Asset.add);
+        ImageView removerImg = new ImageView(Asset.remove);
+        ImageView buscarImg = new ImageView(Asset.search);
 
-        ImageView instructorImg = new ImageView(Asset.instructorImg);
-
-        ImageView aprendizImg = new ImageView(Asset.aprendizImg);
-
-        sesion = generarBoton(sesionImg, botonSesion, "Sesiones", 169, 315);
-        instructor = generarBoton(instructorImg, botonInstructor, "Instructores", 571, 315);
-        aprendiz = generarBoton(aprendizImg, botonAprendiz, "Aprendices", 974, 315);
+        agg = generarBoton(agregarImg, botonAgregar, "Agregar sesión", 169, 315);
+        rmv = generarBoton(removerImg, botonEliminar, "Eliminar sesión", 571, 315);
+        srch = generarBoton(buscarImg, botonConsultar, "Consultar sesiones", 974, 315);
 
         Line linea = new Line(81, 170, 1359, 170);
         linea.setStroke(Color.BLACK);
         linea.setStrokeWidth(4);
 
-        Label mensajeBienvenida = new Label("Bienvenid@, Usuario");
-        mensajeBienvenida.setTextFill(Color.BLACK);
-        mensajeBienvenida.setFont(Font.font(Fuente.BOLD.getName(), 55));
+        Label titulo = new Label("Sesiones");
+        titulo.setTextFill(Color.BLACK);
+        titulo.setFont(Font.font(Fuente.BOLD.getName(), 55));
 
-        AnchorPane.setLeftAnchor(mensajeBienvenida, 81.0);
-        AnchorPane.setTopAnchor(mensajeBienvenida, 69.0);
+        AnchorPane.setLeftAnchor(titulo, 81.0);
+        AnchorPane.setTopAnchor(titulo, 69.0);
 
         StackPane botonAtras = new StackPane();
 
@@ -110,39 +111,67 @@ public class PantallaDashboard {
 
         botonAtras.getChildren().addAll(bck, bckHov, botonBack);
 
-        AnchorPane.setLeftAnchor(botonAtras, 746.0);
+        AnchorPane.setLeftAnchor(botonAtras, 385.0);
         AnchorPane.setTopAnchor(botonAtras, 59.0);
 
+        StackPane botonMenu = new StackPane();
 
-        pantallaDashboard.getChildren().addAll(
+        botonHome.getStyleClass().add("boton-mini-default");
+        ImageView hm = new ImageView(Asset.home);
+        ImageView hmHov = new ImageView(Asset.homeHover);
+
+        hmHov.setVisible(false);
+
+        botonHome.setOnMouseEntered(e -> {
+            hmHov.setVisible(true);
+            hm.setVisible(false);
+        });
+
+        botonHome.setOnMouseExited(e -> {
+            hmHov.setVisible(false);
+            hm.setVisible(true);
+        });
+
+        botonMenu.getChildren().addAll(hm, hmHov, botonHome);
+
+        AnchorPane.setRightAnchor(botonMenu, 20.0);
+        AnchorPane.setBottomAnchor(botonMenu, 20.0);
+
+
+        pantallaSesiones.getChildren().addAll(
             esquinaIzq, 
             esquinaDer, 
-            preguntaConsulta, 
-            sesion, 
-            instructor, 
-            aprendiz, 
+            promptUsuario, 
+            agg, 
+            rmv, 
+            srch, 
             linea, 
-            mensajeBienvenida,
-            botonAtras
+            titulo,
+            botonAtras,
+            botonMenu
         );
 
-        return pantallaDashboard;
-    }
-
-    public Button getBotonSesion() {
-        return botonSesion;
-    }
-
-    public Button getBotonInstructor() {
-        return botonInstructor;
-    }
-
-    public Button getBotonAprendiz() {
-        return botonAprendiz;
+        return pantallaSesiones;
     }
 
     public Button getBotonBack() {
         return botonBack;
+    }
+
+    public Button getBotonHome() {
+        return botonHome;
+    }
+
+    public Button getBotonAgregar() {
+        return botonAgregar;
+    }
+
+    public Button getBotonEliminar() {
+        return botonEliminar;
+    }
+
+    public Button getBotonConsultar() {
+        return botonConsultar;
     }
 
     private VBox generarBoton(ImageView im, Button bu, String text, double x, double y) {
