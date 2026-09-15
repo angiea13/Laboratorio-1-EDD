@@ -1,0 +1,29 @@
+.gradiente-logo {
+    -fx-text-fill: linear-gradient(to right, #8c52ff, #5ce1e6);
+}
+
+.campo-inicio {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-padding: 0;
+    -fx-prompt-text-fill: #d9d9d9;
+}
+
+.boton-login {
+    -fx-background-color: #4954ff;
+    -fx-text-fill: #fbeaff;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.boton-grande-azul {
+     -fx-pref-width: 295;
+    -fx-pref-height: 295;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}

@@ -1,4 +1,4 @@
-package core.test;
+package core.ui;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,37 +24,17 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-public class TestUI extends Application {
 
-    @Override
-    public void start(Stage stage) {
-        
-        String VERSION = "V0.0.1";
+public class PantallaInicio {
 
-        Font regular = Font.loadFont(
-            getClass().getResourceAsStream("/VerdanaPro-Regular.ttf"),
-            20
-        );
+    public String version;
+    Button login;
 
-        Font semiBold = Font.loadFont(
-            getClass().getResourceAsStream("/VerdanaPro-SemiBold.ttf"),
-            20
-        );
+    public PantallaInicio(String version) {
+        this.version = version;
+    }
 
-        Font bold = Font.loadFont(
-            getClass().getResourceAsStream("/VerdanaPro-Bold.ttf"),
-            20
-        );
-
-        Font condBlack = Font.loadFont(
-            getClass().getResourceAsStream("/VerdanaPro-CondBlack.ttf"),
-            20
-        );
-
-        Font condBold = Font.loadFont(
-            getClass().getResourceAsStream("/VerdanaPro-CondBold.ttf"),
-            20
-        );
+    public AnchorPane construirPantalla() {
         Background bg = new Background((new BackgroundFill(Color.web("#e7e7e7"),null, null)));
 
         //ANCHORPANE PERMITE CALCULAR POSICIONES CON OFFSETS CON RESPECTO A LOS BORDES DEL PANE
@@ -83,7 +63,7 @@ public class TestUI extends Application {
             DateTimeFormatter.ofPattern("dd MMMM 'de' yyyy, HH:mm:ss");
 
         horaFecha.setTextFill(Color.web("#A6A6A6"));
-        horaFecha.setFont(Font.font(regular.getFamily(), 20));
+        horaFecha.setFont(Font.font(Fuente.REGULAR.getFamily(), 20));
 
         Timeline reloj = new Timeline(
             new KeyFrame(Duration.ZERO, e -> {
@@ -101,9 +81,9 @@ public class TestUI extends Application {
         AnchorPane.setRightAnchor(horaFecha, 20.0);
 
         //VERSION
-        Label version = new Label(VERSION);
+        Label version = new Label(this.version);
         version.setTextFill(Color.web("#A6A6A6"));
-        version.setFont(Font.font(semiBold.getFamily(), 20));
+        version.setFont(Font.font(Fuente.SEMIBOLD.getFamily(), 20));
 
         AnchorPane.setBottomAnchor(version, 17.0);
         AnchorPane.setLeftAnchor(version, 20.0);
@@ -126,10 +106,8 @@ public class TestUI extends Application {
         Label structart = new Label();
 
         structart.setText("STRUCTART SYSTEMS ©");
-        structart.setFont(Font.font(condBold.getFamily(), 65));
-        structart.setStyle("""
-            -fx-text-fill: linear-gradient(to right, #8c52ff, #5ce1e6);
-        """);
+        structart.setFont(Font.font(Fuente.COND_BOLD.getFamily(), 65));
+        structart.getStyleClass().add("gradiente-logo");
 
         logo.getChildren().addAll(logoRect, structart);
 
@@ -156,14 +134,8 @@ public class TestUI extends Application {
         TextField usuario = new TextField();
 
         usuario.setPromptText("Usuario");
-        usuario.setFont(Font.font(regular.getFamily(), 30));
-        usuario.setStyle("""
-            -fx-background-color: transparent;
-            -fx-border-color: transparent;
-            -fx-text-fill: #333333;
-            -fx-padding: 0;
-            -fx-prompt-text-fill: #d9d9d9;
-        """);
+        usuario.setFont(Font.font(Fuente.REGULAR.getFamily(), 30));
+        usuario.getStyleClass().add("campo-inicio");
 
         usuario.setMaxWidth(312);
 
@@ -185,15 +157,9 @@ public class TestUI extends Application {
         fondoFieldPswrd.setArcHeight(44);
 
         clave.setPromptText("Contraseña");
-        clave.setFont(Font.font(regular.getFamily(), 30));
-        clave.setStyle("""
-            -fx-background-color: transparent;
-            -fx-border-color: transparent;
-            -fx-text-fill: #333333;
-            -fx-padding: 0;
-            -fx-prompt-text-fill: #d9d9d9;
-        """);
-//me cansé de comentar perdon
+        clave.setFont(Font.font(Fuente.REGULAR.getFamily(), 30));
+        clave.getStyleClass().add("campo-inicio");
+        //me cansé de comentar perdon
         clave.setMaxWidth(312);
 
         fieldPswrd.getChildren().addAll(fondoFieldPswrd, clave);
@@ -203,7 +169,7 @@ public class TestUI extends Application {
 
         StackPane loginField = new StackPane();
         
-        Button login = new Button("INGRESAR");
+        login = new Button("INGRESAR");
 
         Rectangle hoverLogin = new Rectangle(510, 105);
         hoverLogin.setFill(Color.web("#ff751f"));
@@ -215,16 +181,8 @@ public class TestUI extends Application {
 
         login.setPrefWidth(495);
         login.setPrefHeight(90);
-        login.setFont(Font.font(condBold.getFamily(), 44));
-        login.setStyle("""
-                -fx-background-color: #4954ff;
-                -fx-text-fill: #fbeaff;
-                -fx-background-radius: 20;
-                -fx-border-radius: 20;
-                -fx-border-color: transparent;
-                -fx-padding: 0;
-                -fx-cursor: hand;
-            """);
+        login.setFont(Font.font(Fuente.COND_BOLD.getFamily(), 44));
+        login.getStyleClass().add("boton-login");
 
         login.setOnMouseEntered(e -> {
             hoverLogin.setVisible(true);
@@ -251,19 +209,11 @@ public class TestUI extends Application {
             loginField
         );
 
-        //JAJA. Y TODO ESO UNA SOLA PANTALLA. 254 LÍNEAS. Dios mío
-
-
-
-        Scene scene = new Scene(pantallaInicio, 1440, 810);
-
-        stage.setTitle("STRUCTART Integrated Systems (SARIS)");
-        stage.setResizable(false);
-        stage.setScene(scene);
-        stage.show();
+        return pantallaInicio;
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    public Button getBotonLogin() {
+        return login;
     }
+    
 }
