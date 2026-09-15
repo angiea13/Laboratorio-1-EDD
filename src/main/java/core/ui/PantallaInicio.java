@@ -1,13 +1,10 @@
 package core.ui;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -21,7 +18,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 
@@ -42,13 +38,9 @@ public class PantallaInicio {
         AnchorPane pantallaInicio = new AnchorPane();
         pantallaInicio.setBackground(bg);
 
-        ImageView esquinaIzq = new ImageView(
-            new Image(getClass().getResourceAsStream("/corner1.png"))
-        );
+        ImageView esquinaIzq = new ImageView(Asset.esquinaIzq);
 
-        ImageView esquinaDer = new ImageView(
-            new Image(getClass().getResourceAsStream("/corner2.png"))
-        );
+        ImageView esquinaDer = new ImageView(Asset.esquinaDer);
 
         AnchorPane.setLeftAnchor(esquinaIzq, 0.0);
         AnchorPane.setTopAnchor(esquinaIzq, 0.0);
@@ -63,7 +55,7 @@ public class PantallaInicio {
             DateTimeFormatter.ofPattern("dd MMMM 'de' yyyy, HH:mm:ss");
 
         horaFecha.setTextFill(Color.web("#A6A6A6"));
-        horaFecha.setFont(Font.font(Fuente.REGULAR.getFamily(), 20));
+        horaFecha.setFont(Font.font(Fuente.REGULAR.getName(), 20));
 
         Timeline reloj = new Timeline(
             new KeyFrame(Duration.ZERO, e -> {
@@ -83,7 +75,7 @@ public class PantallaInicio {
         //VERSION
         Label version = new Label(this.version);
         version.setTextFill(Color.web("#A6A6A6"));
-        version.setFont(Font.font(Fuente.SEMIBOLD.getFamily(), 20));
+        version.setFont(Font.font(Fuente.SEMIBOLD.getName(), 20));
 
         AnchorPane.setBottomAnchor(version, 17.0);
         AnchorPane.setLeftAnchor(version, 20.0);
@@ -106,7 +98,7 @@ public class PantallaInicio {
         Label structart = new Label();
 
         structart.setText("STRUCTART SYSTEMS ©");
-        structart.setFont(Font.font(Fuente.COND_BOLD.getFamily(), 65));
+        structart.setFont(Font.font(Fuente.COND_BOLD.getName(), 65));
         structart.getStyleClass().add("gradiente-logo");
 
         logo.getChildren().addAll(logoRect, structart);
@@ -134,7 +126,7 @@ public class PantallaInicio {
         TextField usuario = new TextField();
 
         usuario.setPromptText("Usuario");
-        usuario.setFont(Font.font(Fuente.REGULAR.getFamily(), 30));
+        usuario.setFont(Font.font(Fuente.REGULAR.getName(), 30));
         usuario.getStyleClass().add("campo-inicio");
 
         usuario.setMaxWidth(312);
@@ -157,7 +149,7 @@ public class PantallaInicio {
         fondoFieldPswrd.setArcHeight(44);
 
         clave.setPromptText("Contraseña");
-        clave.setFont(Font.font(Fuente.REGULAR.getFamily(), 30));
+        clave.setFont(Font.font(Fuente.REGULAR.getName(), 30));
         clave.getStyleClass().add("campo-inicio");
         //me cansé de comentar perdon
         clave.setMaxWidth(312);
@@ -181,7 +173,7 @@ public class PantallaInicio {
 
         login.setPrefWidth(495);
         login.setPrefHeight(90);
-        login.setFont(Font.font(Fuente.COND_BOLD.getFamily(), 44));
+        login.setFont(Font.font(Fuente.COND_BOLD.getName(), 44));
         login.getStyleClass().add("boton-login");
 
         login.setOnMouseEntered(e -> {

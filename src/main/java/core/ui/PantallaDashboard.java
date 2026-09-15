@@ -1,17 +1,8 @@
 package core.ui;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.application.Application;
-import javafx.scene.Scene;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
 import javafx.scene.shape.Line;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -19,11 +10,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
 
 public class PantallaDashboard {
@@ -48,13 +38,8 @@ public class PantallaDashboard {
         AnchorPane pantallaDashboard = new AnchorPane();
         pantallaDashboard.setBackground(bg);
 
-        ImageView esquinaIzq = new ImageView(
-            new Image(getClass().getResourceAsStream("/corner1.png"))
-        );
-
-        ImageView esquinaDer = new ImageView(
-            new Image(getClass().getResourceAsStream("/corner2.png"))
-        );
+        ImageView esquinaIzq = new ImageView(Asset.esquinaIzq);
+        ImageView esquinaDer = new ImageView(Asset.esquinaDer);
 
         AnchorPane.setLeftAnchor(esquinaIzq, 0.0);
         AnchorPane.setTopAnchor(esquinaIzq, 0.0);
@@ -77,7 +62,7 @@ public class PantallaDashboard {
         Label textoPrompt = new Label();
 
         textoPrompt.setText("¿Qué desea consultar?");
-        textoPrompt.setFont(Font.font(Fuente.COND_ITALIC.getFamily(), 44));
+        textoPrompt.setFont(Font.font(Fuente.COND_BOLD_ITALIC.getName(), 44));
         textoPrompt.setTextFill(Color.web("#000000"));
 
         preguntaConsulta.getChildren().addAll(textoRect, textoPrompt);
@@ -85,25 +70,19 @@ public class PantallaDashboard {
         AnchorPane.setLeftAnchor(preguntaConsulta, 411.0);
         AnchorPane.setTopAnchor(preguntaConsulta, 191.0);
 
-        StackPane sesion = new StackPane();
-        StackPane instructor = new StackPane();
-        StackPane aprendiz = new StackPane();
+        VBox sesion = new VBox();
+        VBox instructor = new VBox();
+        VBox aprendiz = new VBox();
 
-        ImageView sesionImg = new ImageView(
-            new Image(getClass().getResourceAsStream("/sesion.png"))
-        );
+        ImageView sesionImg = new ImageView(Asset.sesionImg);
 
-        ImageView instructorImg = new ImageView(
-            new Image(getClass().getResourceAsStream("/instructor.png"))
-        );
+        ImageView instructorImg = new ImageView(Asset.instructorImg);
 
-        ImageView aprendizImg = new ImageView(
-            new Image(getClass().getResourceAsStream("/aprendiz.png"))
-        );
+        ImageView aprendizImg = new ImageView(Asset.aprendizImg);
 
-        sesion = generarBoton(sesionImg, botonSesion, 169, 391);
-        instructor = generarBoton(instructorImg, botonInstructor, 571, 391);
-        aprendiz = generarBoton(aprendizImg, botonAprendiz, 974, 391);
+        sesion = generarBoton(sesionImg, botonSesion, "Sesiones", 169, 315);
+        instructor = generarBoton(instructorImg, botonInstructor, "Instructores", 571, 315);
+        aprendiz = generarBoton(aprendizImg, botonAprendiz, "Aprendices", 974, 315);
 
         Line linea = new Line(81, 170, 1359, 170);
         linea.setStroke(Color.BLACK);
@@ -111,10 +90,33 @@ public class PantallaDashboard {
 
         Label mensajeBienvenida = new Label("Bienvenid@, Usuario");
         mensajeBienvenida.setTextFill(Color.BLACK);
-        mensajeBienvenida.setFont(Font.font(Fuente.COND_BOLD.getFamily(), 44));
+        mensajeBienvenida.setFont(Font.font(Fuente.BOLD.getName(), 55));
 
         AnchorPane.setLeftAnchor(mensajeBienvenida, 81.0);
         AnchorPane.setTopAnchor(mensajeBienvenida, 69.0);
+
+        StackPane botonAtras = new StackPane();
+
+        this.botonBack.getStyleClass().add("boton-pequeño-default");
+        ImageView bck = new ImageView(Asset.back);
+        ImageView bckHov = new ImageView(Asset.back);
+
+        bckHov.setVisible(false);
+
+        botonBack.setOnMouseEntered(e -> {
+            bckHov.setVisible(true);
+            bck.setVisible(false);
+        });
+
+        botonBack.setOnMouseExited(e -> {
+            bckHov.setVisible(false);
+            bck.setVisible(true);
+        });
+
+        botonAtras.getChildren().addAll(bck, bckHov, botonBack);
+
+        AnchorPane.setLeftAnchor(botonAtras, 776.0);
+        AnchorPane.setTopAnchor(botonAtras, 69.0);
 
 
         pantallaDashboard.getChildren().addAll(
@@ -125,7 +127,8 @@ public class PantallaDashboard {
             instructor, 
             aprendiz, 
             linea, 
-            mensajeBienvenida
+            mensajeBienvenida,
+            botonAtras
         );
 
         return pantallaDashboard;
@@ -147,7 +150,16 @@ public class PantallaDashboard {
         return botonBack;
     }
 
-    private StackPane generarBoton(ImageView im, Button bu, double x, double y) {
+    private VBox generarBoton(ImageView im, Button bu, String text, double x, double y) {
+        VBox contenedor = new VBox();
+        
+        contenedor.setSpacing(27.0);
+        contenedor.setAlignment(Pos.CENTER);
+
+        Label desc = new Label(text);
+        desc.setTextFill(Color.BLACK);
+        desc.setFont(Font.font(Fuente.REGULAR.getName(), 30));
+
         StackPane boton = new StackPane();
 
         bu.getStyleClass().add("boton-grande-azul");
@@ -174,10 +186,12 @@ public class PantallaDashboard {
 
         boton.getChildren().addAll(fondoHover, fondo, im, bu);
 
-        AnchorPane.setLeftAnchor(boton, x);
-        AnchorPane.setTopAnchor(boton, y);
+        contenedor.getChildren().addAll(desc, boton);
 
-        return boton;
+        AnchorPane.setLeftAnchor(contenedor, x);
+        AnchorPane.setTopAnchor(contenedor, y);
+
+        return contenedor;
     }
     
 }

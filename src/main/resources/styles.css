@@ -21,8 +21,16 @@
 }
 
 .boton-grande-azul {
-     -fx-pref-width: 295;
+    -fx-pref-width: 295;
     -fx-pref-height: 295;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.boton-pequeño-default {
+    -fx-pref-width: 80;
+    -fx-pref-height: 80;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-cursor: hand;
