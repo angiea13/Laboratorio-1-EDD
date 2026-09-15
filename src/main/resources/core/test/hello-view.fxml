@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Rectangle?>
-
-<VBox fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="core.test.HelloController" alignment="CENTER" spacing="10" style="-fx-background-color: black;">
-    <Label fx:id="label" text="Cargando..." />
-    <Rectangle fx:id="rectangle" width="100" height="2000" fill="cornflowerblue" />
-</VBox>
