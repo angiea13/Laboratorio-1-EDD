@@ -61,5 +61,46 @@ teléfonos con formato incorrecto, textos demasiado largos y sesiones fuera de
 la implementación anterior conserva su validación de cédula de 6 a 12 dígitos.
 Las validaciones nuevas usan ciclos y comparaciones, sin expresiones regulares.
 
-Estos cambios no incluyen asignación de sesiones ni interfaz gráfica. Los
-estados de ClickUp se mantienen sin cambios hasta la revisión del equipo.
+## Sesiones e interfaz gráfica
+
+Ejecutar la ventana gráfica (Swing, incluido en Java):
+
+```powershell
+mvn test
+java -cp target/classes core.main.Main --gui
+```
+
+Para una práctica con datos separados:
+
+```powershell
+java -cp target/classes core.main.Main --gui target/practica
+```
+
+La ventana ofrece ambos CRUD, reportes, asignación, consulta por código, fecha
+o instructor, cancelación y reinicio de los dos archivos. Cancelar un formulario
+no guarda sus datos. Los resultados se muestran en el panel inferior.
+
+En consola se agregaron las opciones 14 (asignar), 15 (cancelar), 16 (reiniciar
+instructores) y 17 (consultar por código).
+
+La asignación comprueba registro y especialidad del aprendiz, máximo de cuatro
+sesiones por mes y especialidad, instructor de la especialidad con menos de
+quince sesiones, código único y disponibilidad en la fecha. Como el enunciado
+no guarda horas, se admite una sesión por persona y día. Solo se cancelan
+sesiones posteriores a hoy; la baja lógica conserva las posiciones del archivo
+y libera el cupo. Los índices se reconstruyen al abrir, excluyendo las bajas.
+
+Los contadores de instructores y aprendices representan el mes actual. Al iniciar
+un mes, el administrador debe ejecutar ambos reinicios. Las reservas para otros
+meses se controlan con el historial de sesiones de ese mes, sin modificar los
+contadores del mes actual. Las asignaciones del mes actual actualizan ambos
+archivos; la cancelación descuenta sus contadores. El historial también impide
+superar los límites después de un reinicio accidental durante el mismo mes.
+
+Los errores de escritura intentan restaurar los contadores anteriores. No se
+implementa una transacción resistente a cortes de energía entre varios archivos.
+Utilizar una sola instancia de la aplicación por carpeta de datos.
+
+Las pruebas cubren asignación, cancelación, persistencia, límites, duplicados,
+fechas inválidas para la operación y conservación de registros vecinos.
+Los estados de ClickUp se mantienen sin cambios hasta la revisión del equipo.

@@ -22,12 +22,14 @@ public final class ArchivoSesiones implements Closeable {
     private final Map<String, Long> indiceCodigo = new LinkedHashMap<>();
     private final Map<LocalDate, Set<Long>> indiceFecha = new LinkedHashMap<>();
     private final Map<String, Set<Long>> indiceInstructor = new LinkedHashMap<>();
+    private final Map<String, Set<Long>> indiceAprendiz = new LinkedHashMap<>();
 
     public ArchivoSesiones(Path ruta) throws IOException {
         Path padre = ruta.toAbsolutePath().getParent();
         if (padre != null) Files.createDirectories(padre);
         archivo = new RandomAccessFile(ruta.toFile(), "rw");
-        cargarIndices();
+        try { cargarIndices(); }
+        catch (IOException | RuntimeException e) { archivo.close(); throw new IOException("Archivo de sesiones incorrecto.", e); }
     }
 
     public synchronized void agregar(Sesion sesion) throws IOException, ValidacionException {
@@ -36,8 +38,46 @@ public final class ArchivoSesiones implements Closeable {
             throw new ValidacionException("Ya existe una sesión con el código " + sesion.codigo().trim() + ".");
         long posicion = archivo.length();
         archivo.seek(posicion);
-        escribir(sesion);
-        indexar(sesion, posicion);
+        try { escribir(sesion); }
+        catch (IOException error) {
+            try { archivo.setLength(posicion); }
+            catch (IOException restauracion) { error.addSuppressed(restauracion); }
+            throw error;
+        }
+        archivo.seek(posicion);
+        indexar(leer(), posicion);
+    }
+
+    public synchronized Sesion buscar(String codigo) throws IOException {
+        Long posicion = indiceCodigo.get(codigo.trim());
+        if (posicion == null) return null;
+        archivo.seek(posicion);
+        return leer();
+    }
+
+    public synchronized List<Sesion> listar() throws IOException {
+        return leerPosiciones(new LinkedHashSet<>(indiceCodigo.values()));
+    }
+
+    /** Baja lógica: código vacío. Las posiciones de los demás registros no cambian. */
+    synchronized void eliminar(String codigo) throws IOException {
+        Long posicion = indiceCodigo.get(codigo.trim());
+        if (posicion == null) throw new IOException("La sesión no existe.");
+        archivo.seek(posicion);
+        Sesion sesion = leer();
+        archivo.seek(posicion);
+        try {
+            escribirTexto("", CODIGO);
+            archivo.getFD().sync();
+        } catch (IOException error) {
+            try { archivo.seek(posicion); escribirTexto(sesion.codigo(), CODIGO); archivo.getFD().sync(); }
+            catch (IOException restauracion) { error.addSuppressed(restauracion); }
+            throw error;
+        }
+        indiceCodigo.remove(sesion.codigo());
+        indiceFecha.get(sesion.fecha()).remove(posicion);
+        indiceInstructor.get(normalizar(sesion.cedulaInstructor())).remove(posicion);
+        indiceAprendiz.get(normalizar(sesion.cedulaAprendiz())).remove(posicion);
     }
 
     /** Obtiene las sesiones usando exclusivamente el índice de fecha. */
@@ -48,6 +88,10 @@ public final class ArchivoSesiones implements Closeable {
     /** Obtiene las sesiones usando exclusivamente el índice de instructor. */
     public synchronized List<Sesion> buscarPorInstructor(String cedulaInstructor) throws IOException {
         return leerPosiciones(indiceInstructor.getOrDefault(normalizar(cedulaInstructor), Set.of()));
+    }
+
+    public synchronized List<Sesion> buscarPorAprendiz(String cedulaAprendiz) throws IOException {
+        return leerPosiciones(indiceAprendiz.getOrDefault(normalizar(cedulaAprendiz), Set.of()));
     }
 
     private List<Sesion> leerPosiciones(Set<Long> posiciones) throws IOException {
@@ -64,7 +108,12 @@ public final class ArchivoSesiones implements Closeable {
             throw new IOException("El archivo de sesiones contiene registros incompletos.");
         for (long posicion = 0; posicion < archivo.length(); posicion += TAM_REGISTRO) {
             archivo.seek(posicion);
-            indexar(leer(), posicion);
+            Sesion sesion = leer();
+            if (sesion.codigo().isEmpty()) continue;
+            try { validar(sesion); }
+            catch (ValidacionException e) { throw new IOException("Registro de sesión incorrecto.", e); }
+            if (indiceCodigo.containsKey(sesion.codigo())) throw new IOException("Código de sesión duplicado.");
+            indexar(sesion, posicion);
         }
     }
 
@@ -72,6 +121,7 @@ public final class ArchivoSesiones implements Closeable {
         indiceCodigo.put(sesion.codigo(), posicion);
         indiceFecha.computeIfAbsent(sesion.fecha(), clave -> new LinkedHashSet<>()).add(posicion);
         indiceInstructor.computeIfAbsent(normalizar(sesion.cedulaInstructor()), clave -> new LinkedHashSet<>()).add(posicion);
+        indiceAprendiz.computeIfAbsent(normalizar(sesion.cedulaAprendiz()), clave -> new LinkedHashSet<>()).add(posicion);
     }
 
     private void validar(Sesion sesion) throws ValidacionException {
@@ -79,6 +129,12 @@ public final class ArchivoSesiones implements Closeable {
                 || vacio(sesion.cedulaAprendiz()) || vacio(sesion.especialidad())
                 || vacio(sesion.nombreInstructor()) || vacio(sesion.cedulaInstructor()) || sesion.fecha() == null)
             throw new ValidacionException("Todos los campos de la sesión son obligatorios.");
+        ValidacionDatos.texto(sesion.codigo(), "código", CODIGO);
+        ValidacionDatos.texto(sesion.nombreAprendiz(), "nombre del aprendiz", NOMBRE);
+        ValidacionDatos.texto(sesion.cedulaAprendiz(), "cédula del aprendiz", CEDULA);
+        ValidacionDatos.texto(sesion.especialidad(), "especialidad", ESPECIALIDAD);
+        ValidacionDatos.texto(sesion.nombreInstructor(), "nombre del instructor", NOMBRE);
+        ValidacionDatos.texto(sesion.cedulaInstructor(), "cédula del instructor", CEDULA);
     }
 
     private void escribir(Sesion s) throws IOException {

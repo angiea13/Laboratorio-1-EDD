@@ -1,6 +1,6 @@
 # LABORATORIO 1: Academia de Artes Barranquilla - Sistema de Gestión de Archivos
 
-Sistema de gestión de sesiones, instructores y aprendices desarrollado en **Java** con **JavaFX**, implementando manejo avanzado de archivos indexados para la **Academia de Artes Barranquilla**.
+Sistema de gestión de sesiones, instructores y aprendices desarrollado en **Java** con **Swing** y archivos indexados para la **Academia de Artes Barranquilla**.
 
 ---
 
@@ -13,7 +13,7 @@ Este software forma parte del **Laboratorio 1** de **Estructuras de Datos 1**. S
 ## Tecnologías y Requisitos
 
 * **Lenguaje:** Java (JDK 17 o superior recomendado)
-* **Interfaz Gráfica:** JavaFX 17+
+* **Interfaz Gráfica:** Swing, incluido en el JDK
 * **Entorno de Desarrollo:** Visual Studio Code (VS Code) con Extension Pack for Java
 * **Control de Archivos:** Archivos secuenciales indexados (`RandomAccessFile` / archivos binarios/texto estructurados)
 
@@ -22,7 +22,10 @@ Este software forma parte del **Laboratorio 1** de **Estructuras de Datos 1**. S
 ## Estructura del Proyecto
 
 ```text
-WIP/ #agregar aquí carpetas y cosas del proyecto
+src/main/java/core/main/  # Archivos indexados, servicios y menús
+src/main/java/core/file/  # Operaciones de registros binarios
+src/test/java/core/main/ # Pruebas
+datos/                  # Se crea al ejecutar
 ```
 
 ---
@@ -42,7 +45,7 @@ WIP/ #agregar aquí carpetas y cosas del proyecto
 * **Asignación inteligente:** Valida disponibilidad del aprendiz (límite de 4 sesiones) y busca instructores con la especialidad requerida que tengan menos de 15 sesiones en el mes.
 * **Consulta:** Visualización rápida de sesiones programadas.
 * **Cancelación:** Permite eliminar una sesión **únicamente si la fecha es futura** (regla de negocio no funcional).
-* **Prevención de duplicados:** Evita asignar sesiones duplicadas para el mismo instructor o aprendiz en la misma fecha/hora.
+* **Prevención de duplicados:** Evita asignar sesiones al mismo instructor o aprendiz en la misma fecha. El enunciado no incluye un campo de hora.
 
 ### 4. Mantenimiento y Reinicio Mensual
 * Reinicio del archivo de instructores (resetea el contador de sesiones a 0).
@@ -58,12 +61,26 @@ Abre tu terminal en VS Code y clona el repositorio:
 git clone https://github.com/angiea13/Laboratorio-1-EDD.git
 ```
 
-### Paso 2: Configurar JavaFX en VS Code
-1. Asegúrate de tener instalada la extensión **Extension Pack for Java** y **JavaFX Support**.
-2. Configura las librerías de JavaFX en tu `launch.json` o mediante tu gestor de dependencias (Maven / Gradle) si aplica, o añade los archivos JAR de JavaFX al classpath del proyecto.
+### Paso 2: Compilar y probar
+Instala Java 17 y Maven. Desde la carpeta del proyecto:
+
+```powershell
+mvn test
+```
 
 ### Paso 3: Ejecutar la Aplicación
-Compila y ejecuta la clase principal `Main.java` desde VS Code.
+```powershell
+java -cp target/classes core.main.Main --gui
+```
+
+También se puede ejecutar `core.main.MenuGrafico` desde VS Code. Para el menú
+de consola, omitir `--gui`. Se puede agregar una carpeta de datos al final del
+comando, por ejemplo `target/practica`.
+
+Consultar `MENU-INSTRUCTORES.md` para las reglas de asignación, cancelación,
+reinicio mensual y compatibilidad de archivos. El administrador debe ejecutar
+ambos reinicios al comenzar cada mes. Las reservas de otros meses se contabilizan
+desde el historial sin consumir el contador del mes actual.
 
 ---
 
@@ -71,7 +88,7 @@ Compila y ejecuta la clase principal `Main.java` desde VS Code.
 
 * **Patrón DAO (Data Access Object):** Separa la lógica de negocio del acceso a archivos físicos indexados, optimizando la búsqueda y actualización de registros.
 * **Manejo de Errores:** Control robusto de excepciones para archivos no encontrados, registros corruptos, campos vacíos y validación estricta de formatos (fechas, cédulas numéricas).
-* **Interfaz Gráfica Interactiva (JavaFX):** Diseñada bajo principios de usabilidad, con menús limpios, alertas de validación y componentes visuales atractivos.
+* **Interfaz Gráfica Interactiva (Swing):** Botones de operaciones, formularios, confirmaciones y panel de resultados.
 
 ---
 

@@ -170,6 +170,23 @@ public class ArchivoInstructoresIndexado {
         return resultado;
     }
 
+    /** Modifica únicamente los dos bytes del contador, mediante el índice. */
+    public void actualizarContador(int cedula, int cantidad) throws IOException {
+        if (cantidad < 0 || cantidad > 15) throw new IOException("Contador fuera del rango 0-15.");
+        Long posicion = index.get(cedula);
+        if (posicion == null) throw new IOException("El instructor no existe.");
+        try (RandomAccessFile archivo = new RandomAccessFile(dataFile, "rw")) {
+            archivo.seek(posicion + 152);
+            archivo.writeShort(cantidad);
+            archivo.getFD().sync();
+        }
+    }
+
+    public int reiniciarContadoresMensuales() throws IOException {
+        for (Integer cedula : index.keySet()) actualizarContador(cedula, 0);
+        return index.size();
+    }
+
     private Instructor leerInstructor(int id) throws IOException {
         String[] r = consultar(id);
         if (r == null) throw new IOException("No se pudo consultar el instructor " + id + ".");

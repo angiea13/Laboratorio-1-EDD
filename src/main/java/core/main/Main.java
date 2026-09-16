@@ -11,6 +11,10 @@ public final class Main {
     private Main() { }
 
     public static void main(String[] args) {
+        if (args.length > 0 && "--gui".equals(args[0])) {
+            MenuGrafico.main(java.util.Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
         Path carpeta = Path.of("datos");
         if (args.length > 0) carpeta = Path.of(args[0]);
         try (Scanner entrada = new Scanner(System.in);
@@ -18,14 +22,14 @@ public final class Main {
              ArchivoAprendices aprendices = new ArchivoAprendices(carpeta.resolve("aprendices.dat"))) {
             ArchivoInstructoresIndexado archivo = ArchivoInstructoresIndexado.abrirParaMenu(carpeta);
             ejecutarMenu(entrada, archivo, new ReporteServicio(archivo, sesiones),
-                    new AprendizServicio(aprendices));
+                    new AprendizServicio(aprendices), new SesionServicio(sesiones, aprendices, archivo), sesiones);
         } catch (IOException error) {
             System.err.println("No fue posible abrir los archivos de la academia: " + error.getMessage());
         }
     }
 
     private static void ejecutarMenu(Scanner entrada, ArchivoInstructoresIndexado servicio, ReporteServicio reportes,
-                                     AprendizServicio aprendices) {
+                                     AprendizServicio aprendices, SesionServicio asignaciones, ArchivoSesiones sesiones) {
         String opcion;
         do {
             System.out.println("\n--- Gestión de instructores ---");
@@ -34,11 +38,12 @@ public final class Main {
             System.out.println("8. Reiniciar sesiones mensuales de aprendices  0. Salir");
             System.out.println("9. Registrar aprendiz  10. Consultar aprendiz  11. Modificar aprendiz");
             System.out.println("12. Eliminar aprendiz  13. Listar aprendices");
+            System.out.println("14. Asignar sesión  15. Cancelar sesión  16. Reiniciar instructores  17. Consultar sesión por código");
             System.out.print("Opción: ");
             if (!entrada.hasNextLine()) return;
             opcion = entrada.nextLine().trim();
             try {
-                procesar(opcion, entrada, servicio, reportes, aprendices);
+                procesar(opcion, entrada, servicio, reportes, aprendices, asignaciones, sesiones);
             } catch (ValidacionException error) {
                 System.out.println("Aviso: " + error.getMessage());
             } catch (IOException error) {
@@ -51,9 +56,39 @@ public final class Main {
     }
 
     private static void procesar(String opcion, Scanner entrada, ArchivoInstructoresIndexado servicio,
-                                 ReporteServicio reportes, AprendizServicio aprendices)
+                                 ReporteServicio reportes, AprendizServicio aprendices,
+                                 SesionServicio asignaciones, ArchivoSesiones sesiones)
             throws IOException, ValidacionException {
         switch (opcion) {
+            case "14" -> {
+                System.out.print("Código único: "); String codigo = entrada.nextLine();
+                System.out.print("Cédula del aprendiz: "); String cedula = entrada.nextLine();
+                Aprendiz aprendiz = aprendices.consultar(cedula);
+                if (aprendiz == null) throw new ValidacionException("El aprendiz no está registrado.");
+                System.out.println("Aprendiz: " + aprendiz.nombre());
+                System.out.print("Especialidad: "); String especialidad = entrada.nextLine();
+                System.out.print("Fecha (AAAA-MM-DD): ");
+                LocalDate fecha;
+                try { fecha = LocalDate.parse(entrada.nextLine().trim()); }
+                catch (DateTimeParseException e) { throw new ValidacionException("Fecha inválida. Use AAAA-MM-DD."); }
+                var disponibles = asignaciones.disponibles(especialidad, fecha);
+                if (disponibles.isEmpty()) throw new ValidacionException("No hay instructores disponibles.");
+                for (Instructor instructor : disponibles) mostrar(instructor);
+                System.out.print("Cédula del instructor elegido: ");
+                mostrarSesion(asignaciones.asignar(codigo, cedula, especialidad, entrada.nextLine(), fecha));
+            }
+            case "15" -> {
+                System.out.print("Código de sesión: ");
+                asignaciones.cancelar(entrada.nextLine());
+                System.out.println("Sesión cancelada.");
+            }
+            case "16" -> System.out.println("Instructores reiniciados: " + servicio.reiniciarContadoresMensuales());
+            case "17" -> {
+                System.out.print("Código de sesión: ");
+                Sesion sesion = sesiones.buscar(entrada.nextLine());
+                if (sesion == null) throw new ValidacionException("La sesión no existe.");
+                mostrarSesion(sesion);
+            }
             case "1" -> {
                 guardarInstructor(entrada, servicio, false);
             }
