@@ -82,3 +82,10 @@
     -fx-border-color: transparent;
     -fx-cursor: hand;
 }
+
+.combo-filtro {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-prompt-text-fill: #838383;
+}

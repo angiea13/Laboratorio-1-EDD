@@ -10,7 +10,7 @@ public class MainUI extends Application {
     @Override
     public void start(Stage stage) {
         
-        String VERSION = "V0.0.81";
+        String VERSION = "V0.1.2a";
 
         PantallaInicio pini = new PantallaInicio(VERSION);
         PantallaMenu pm = new PantallaMenu(VERSION);
@@ -27,6 +27,10 @@ public class MainUI extends Application {
         EliminarInstructor ei = new EliminarInstructor();
         EliminarAprendiz ea = new EliminarAprendiz();
 
+        ConsultarSesion cs = new ConsultarSesion();
+        ConsultarInstructor ci = new ConsultarInstructor();
+        ConsultarAprendiz ca = new ConsultarAprendiz();
+
 
         AnchorPane root = pini.construirPantalla();
         AnchorPane menu = pm.construirPantalla();
@@ -42,6 +46,11 @@ public class MainUI extends Application {
         AnchorPane sessionRm = es.construirPantalla();
         AnchorPane instructorRm = ei.construirPantalla();
         AnchorPane apprenticeRm = ea.construirPantalla();
+
+        AnchorPane sessionSr = cs.construirPantalla();
+        AnchorPane instructorSr = ci.construirPantalla();
+        AnchorPane aprendizSr = ca.construirPantalla();
+
         
         Scene scene = new Scene(root);
 
@@ -97,6 +106,10 @@ public class MainUI extends Application {
             scene.setRoot(sessionRm);
         });
 
+        ps.getBotonConsultar().setOnAction(e -> {
+            scene.setRoot(sessionSr);
+        });
+
         //ACCIONES BOTONES PANTALLA INSTRUCTORES
         pi.getBotonBack().setOnAction(e -> {
             scene.setRoot(dashboard);
@@ -114,6 +127,10 @@ public class MainUI extends Application {
             scene.setRoot(instructorRm);
         });
 
+        pi.getBotonConsultar().setOnAction(e -> { 
+            scene.setRoot(instructorSr); 
+        });
+
         //ACCIONES BOTONES PANTALLA APRENDICES
         pa.getBotonBack().setOnAction(e -> {
             scene.setRoot(dashboard);
@@ -129,6 +146,10 @@ public class MainUI extends Application {
 
         pa.getBotonEliminar().setOnAction(e -> {
             scene.setRoot(apprenticeRm);
+        });
+
+        pa.getBotonConsultar().setOnAction(e -> { 
+            scene.setRoot(aprendizSr); 
         });
 
         //ACCIONES BOTONES AGREGAR SESION
@@ -208,6 +229,22 @@ public class MainUI extends Application {
         ea.getBotonEliminar().setOnAction(e -> {
             // lógica de eliminar aprendiz aquí
         });
+
+        cs.getBotonAtras().setOnAction(e -> { 
+            scene.setRoot(session); 
+        }); 
+        
+        cs.getBotonMenu().setOnAction(e -> { 
+            scene.setRoot(menu); 
+        }); 
+        
+        ca.getBotonAtras().setOnAction(e -> { 
+            scene.setRoot(apprentice); 
+        }); 
+        
+        ca.getBotonMenu().setOnAction(e -> { 
+            scene.setRoot(menu); 
+        }); 
 
         stage.setTitle("STRUCTART Integrated Systems (SARIS)");
         stage.setResizable(false);
