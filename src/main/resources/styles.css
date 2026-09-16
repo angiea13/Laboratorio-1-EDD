@@ -43,3 +43,42 @@
     -fx-border-color: transparent;
     -fx-cursor: hand;
 }
+
+.boton-confirmar {
+    -fx-pref-width: 495;
+    -fx-pref-height: 990;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.campo-agregar {
+    -fx-pref-width: 548;
+    -fx-pref-height: 57;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-padding: 0;
+    -fx-prompt-text-fill: #d9d9d9;
+}
+
+.gradiente-header {
+    -fx-fill: linear-gradient(to right, #8c52ff, #5ce1e6);
+    -fx-background-radius: 20px 20px 0px 0px;
+}
+
+.campo-eliminar {
+    -fx-pref-width: 480;
+    -fx-pref-height: 71;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #333333;
+    -fx-padding: 20;
+    -fx-prompt-text-fill: #d9d9d9;
+}
+
+.boton-eliminar {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
