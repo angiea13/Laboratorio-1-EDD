@@ -31,7 +31,9 @@ public final class ArchivoInstructores implements Closeable {
 
     public synchronized boolean existe(String cedula) { return indice.containsKey(cedula); }
 
-    public synchronized void agregar(Instructor instructor) throws IOException {
+    public synchronized void agregar(Instructor instructor) throws IOException, ValidacionException {
+        instructor = InstructorValidador.validar(instructor);
+        if (indice.containsKey(instructor.cedula())) throw new ValidacionException("Ya existe un instructor con esa cédula.");
         long posicion = archivo.length();
         archivo.seek(posicion);
         escribirRegistro(instructor, true);
@@ -46,7 +48,9 @@ public final class ArchivoInstructores implements Closeable {
         return Optional.of(leerRegistro());
     }
 
-    public synchronized void actualizar(Instructor instructor) throws IOException {
+    public synchronized void actualizar(Instructor instructor) throws IOException, ValidacionException {
+        instructor = InstructorValidador.validar(instructor);
+        if (!indice.containsKey(instructor.cedula())) throw new ValidacionException("No existe un instructor con esa cédula.");
         Instructor anterior = buscar(instructor.cedula()).orElseThrow();
         desindexarEspecialidad(anterior);
         archivo.seek(indice.get(instructor.cedula()));

@@ -27,17 +27,51 @@ public final class ArchivoAprendices implements Closeable {
         Path padre = ruta.toAbsolutePath().getParent();
         if (padre != null) Files.createDirectories(padre);
         archivo = new RandomAccessFile(ruta.toFile(), "rw");
-        cargarIndice();
+        try {
+            cargarIndice();
+        } catch (IOException e) {
+            archivo.close();
+            throw e;
+        }
     }
 
     public synchronized void guardar(Aprendiz aprendiz) throws IOException, ValidacionException {
-        validar(aprendiz);
+        aprendiz = AprendizValidador.validar(aprendiz);
         if (indice.containsKey(aprendiz.cedula()))
             throw new ValidacionException("Ya existe un aprendiz con la cédula " + aprendiz.cedula() + ".");
         long posicion = archivo.length();
         archivo.seek(posicion);
         escribir(aprendiz);
         indice.put(aprendiz.cedula(), posicion);
+    }
+
+    /** Consulta directa por el índice de cédulas. Devuelve null cuando no existe. */
+    public synchronized Aprendiz buscar(String cedula) throws IOException, ValidacionException {
+        cedula = InstructorValidador.validarCedula(cedula);
+        Long posicion = indice.get(cedula);
+        if (posicion == null) return null;
+        archivo.seek(posicion);
+        return leer();
+    }
+
+    /** Conserva la cédula; valida todo antes de sobrescribir el registro. */
+    public synchronized void actualizar(Aprendiz aprendiz) throws IOException, ValidacionException {
+        aprendiz = AprendizValidador.validar(aprendiz);
+        Long posicion = indice.get(aprendiz.cedula());
+        if (posicion == null) throw new ValidacionException("No existe un aprendiz con esa cédula.");
+        archivo.seek(posicion);
+        escribir(aprendiz);
+    }
+
+    /** Baja lógica: vacía el campo cédula y elimina su entrada del índice. */
+    public synchronized void eliminar(String cedula) throws IOException, ValidacionException {
+        cedula = InstructorValidador.validarCedula(cedula);
+        Long posicion = indice.get(cedula);
+        if (posicion == null) throw new ValidacionException("No existe un aprendiz con esa cédula.");
+        archivo.seek(posicion + NOMBRE * 2L);
+        escribirTexto("", CEDULA);
+        archivo.getFD().sync();
+        indice.remove(cedula);
     }
 
     public synchronized List<Aprendiz> listar() throws IOException {
@@ -57,7 +91,7 @@ public final class ArchivoAprendices implements Closeable {
      */
     public synchronized int reiniciarContadoresPorEspecialidad() throws IOException {
         int reiniciados = 0;
-        for (long posicion = 0; posicion < archivo.length(); posicion += TAM_REGISTRO) {
+        for (long posicion : indice.values()) {
             long inicioEspecialidades = posicion + (NOMBRE + CEDULA + TELEFONO) * 2;
             archivo.seek(inicioEspecialidades);
             int cantidad = archivo.readInt();
@@ -79,24 +113,18 @@ public final class ArchivoAprendices implements Closeable {
         if (archivo.length() % TAM_REGISTRO != 0)
             throw new IOException("El archivo de aprendices contiene registros incompletos.");
         for (long posicion = 0; posicion < archivo.length(); posicion += TAM_REGISTRO) {
-            archivo.seek(posicion + NOMBRE * 2L);
-            indice.put(leerTexto(CEDULA), posicion);
-        }
-    }
-
-    private void validar(Aprendiz aprendiz) throws ValidacionException {
-        if (aprendiz == null || aprendiz.nombre() == null || aprendiz.nombre().isBlank()
-                || aprendiz.cedula() == null || aprendiz.cedula().isBlank()
-                || aprendiz.telefono() == null || aprendiz.telefono().isBlank()
-                || aprendiz.sesionesPorEspecialidad().isEmpty())
-            throw new ValidacionException("Todos los datos del aprendiz y sus especialidades son obligatorios.");
-        InstructorValidador.validarCedula(aprendiz.cedula());
-        if (aprendiz.sesionesPorEspecialidad().size() > MAX_ESPECIALIDADES)
-            throw new ValidacionException("Un aprendiz puede registrar máximo 10 especialidades.");
-        for (var entrada : aprendiz.sesionesPorEspecialidad().entrySet()) {
-            if (entrada.getKey() == null || entrada.getKey().isBlank() || entrada.getValue() == null
-                    || entrada.getValue() < 0 || entrada.getValue() > 4)
-                throw new ValidacionException("Cada especialidad debe tener un nombre y entre 0 y 4 sesiones.");
+            archivo.seek(posicion);
+            Aprendiz aprendiz = leer();
+            // Cédula vacía es la marca de baja lógica: mantiene intactas las posiciones.
+            if (!aprendiz.cedula().isEmpty()) {
+                try {
+                    aprendiz = AprendizValidador.validar(aprendiz);
+                } catch (ValidacionException e) {
+                    throw new IOException("Registro de aprendiz incorrecto: " + e.getMessage(), e);
+                }
+                if (indice.containsKey(aprendiz.cedula())) throw new IOException("Cédula de aprendiz duplicada en archivo.");
+                indice.put(aprendiz.cedula(), posicion);
+            }
         }
     }
 
@@ -123,18 +151,22 @@ public final class ArchivoAprendices implements Closeable {
         String cedula = leerTexto(CEDULA);
         String telefono = leerTexto(TELEFONO);
         int cantidad = archivo.readInt();
+        if (cantidad < 1 || cantidad > MAX_ESPECIALIDADES) throw new IOException("Cantidad de especialidades incorrecta.");
         Map<String, Integer> especialidades = new LinkedHashMap<>();
         for (int i = 0; i < MAX_ESPECIALIDADES; i++) {
             String especialidad = leerTexto(ESPECIALIDAD);
             int sesiones = archivo.readInt();
-            if (i < cantidad) especialidades.put(especialidad, sesiones);
+            if (i < cantidad) {
+                if (especialidades.containsKey(especialidad)) throw new IOException("Especialidad duplicada en archivo.");
+                especialidades.put(especialidad, sesiones);
+            }
         }
         return new Aprendiz(nombre, cedula, telefono, especialidades);
     }
 
     private void escribirTexto(String valor, int longitud) throws IOException {
         String texto = valor.trim();
-        if (texto.length() > longitud) texto = texto.substring(0, longitud);
+        if (texto.length() > longitud) throw new IOException("El campo excede la longitud permitida.");
         archivo.writeChars(texto);
         for (int i = texto.length(); i < longitud; i++) archivo.writeChar('\0');
     }

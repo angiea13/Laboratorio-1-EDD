@@ -8,6 +8,13 @@ import java.util.List;
 public final class ReporteServicio {
     private final ArchivoInstructores instructores;
     private final ArchivoSesiones sesiones;
+    private ArchivoInstructoresIndexado instructoresIndexados;
+
+    public ReporteServicio(ArchivoInstructoresIndexado instructores, ArchivoSesiones sesiones) {
+        this.instructores = null;
+        this.instructoresIndexados = instructores;
+        this.sesiones = sesiones;
+    }
 
     public ReporteServicio(ArchivoInstructores instructores, ArchivoSesiones sesiones) {
         this.instructores = instructores;
@@ -17,6 +24,8 @@ public final class ReporteServicio {
     public List<Instructor> instructoresDisponibles(String especialidad) throws IOException, ValidacionException {
         if (especialidad == null || especialidad.isBlank())
             throw new ValidacionException("La especialidad es obligatoria.");
+        if (instructoresIndexados != null)
+            return java.util.Arrays.asList(instructoresIndexados.disponibles(especialidad));
         return instructores.buscarDisponiblesPorEspecialidad(especialidad);
     }
 
@@ -26,6 +35,8 @@ public final class ReporteServicio {
     }
 
     public List<Sesion> sesionesPorInstructor(String cedula) throws IOException, ValidacionException {
+        if (instructoresIndexados != null)
+            return sesiones.buscarPorInstructor("" + ArchivoInstructoresIndexado.leerCedula(cedula));
         return sesiones.buscarPorInstructor(InstructorValidador.validarCedula(cedula));
     }
 }

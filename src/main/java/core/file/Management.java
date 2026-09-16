@@ -78,16 +78,16 @@ public class Management {
     Los otros dos parámetros son el HashMap que tiene cargados los índices de los instructores (INDEX_FILE),
     y el nombre del archivo de instructores .dat en el disco (DATA_FILE).
     */
-    public void addInstructor(int id, String name, String specialty, long phone, short nOfSessions, HashMap<Integer, Long> INDEX_FILE, String DATA_FILE) {
-        if (!validInstructor(id, name, specialty, phone, nOfSessions)) return;
+    public boolean addInstructor(int id, String name, String specialty, long phone, short nOfSessions, HashMap<Integer, Long> INDEX_FILE, String DATA_FILE) {
+        if (!validInstructor(id, name, specialty, phone, nOfSessions)) return false;
         if (INDEX_FILE.containsKey(id)) {
             System.out.println("Error: la cédula del instructor ya existe en los registros.");
-            return;
+            return false;
         }
         try (RandomAccessFile instructorRAF = new RandomAccessFile(DATA_FILE, "rw")) {
             if (instructorRAF.length() % INSTRUCTOR_RECORD_SIZE != 0) {
                 System.out.println("Error: archivo de instructores con registros errados.");
-                return;
+                return false;
             }
             long posicion = instructorRAF.length();
             instructorRAF.seek(posicion);
@@ -96,15 +96,21 @@ public class Management {
 
             INDEX_FILE.put(id, posicion);
             System.out.println("Instructor guardado en posición: " + posicion);
+            return true;
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
+            return false;
         }
     }
 
     // Valida todos los campos antes de escribir el registro.
     private boolean validInstructor(int id, String name, String specialty, long phone, short sessions) {
-        if (id <= 0 || phone <= 0) {
-            System.out.println("Error: cédula y teléfono deben ser números positivos.");
+        if (id <= 0) {
+            System.out.println("Error: la cédula debe ser un número positivo.");
+            return false;
+        }
+        if (phone < 1000000L || phone > 9999999999L) {
+            System.out.println("Error: el teléfono debe contener entre 7 y 10 dígitos.");
             return false;
         }
         if (name == null || name.trim().isEmpty() || name.trim().length() > 50) {
@@ -178,43 +184,47 @@ public class Management {
     }
 
     // Conserva la cédula y la posición; reescribe el registro de longitud fija.
-    public void updateInstructor(int id, String name, String specialty, long phone, short sessions,
+    public boolean updateInstructor(int id, String name, String specialty, long phone, short sessions,
                                  HashMap<Integer, Long> index, String dataFile) {
-        if (!validInstructor(id, name, specialty, phone, sessions)) return;
+        if (!validInstructor(id, name, specialty, phone, sessions)) return false;
         if (!index.containsKey(id)) {
             System.out.println("No existe un instructor con esa cédula.");
-            return;
+            return false;
         }
         if (!new File(dataFile).exists()) {
             System.out.println("Error: archivo de instructores no encontrado.");
-            return;
+            return false;
         }
         try (RandomAccessFile file = new RandomAccessFile(dataFile, "rw")) {
             locateInstructor(file, id, index.get(id));
             writeInstructor(file, id, name.trim(), specialty.trim(), phone, sessions);
             System.out.println("Instructor modificado correctamente.");
+            return true;
         } catch (IOException e) {
             System.out.println("Error al modificar instructor: " + e.getMessage());
+            return false;
         }
     }
 
     // Baja lógica: una cédula negativa marca el registro eliminado, sin desplazar otros.
-    public void deleteInstructor(int id, HashMap<Integer, Long> index, String dataFile) {
+    public boolean deleteInstructor(int id, HashMap<Integer, Long> index, String dataFile) {
         if (!index.containsKey(id)) {
             System.out.println("No existe un instructor con esa cédula.");
-            return;
+            return false;
         }
         if (!new File(dataFile).exists()) {
             System.out.println("Error: archivo de instructores no encontrado.");
-            return;
+            return false;
         }
         try (RandomAccessFile file = new RandomAccessFile(dataFile, "rw")) {
             locateInstructor(file, id, index.get(id));
             file.writeInt(-id);
             index.remove(id);
             System.out.println("Instructor eliminado correctamente.");
+            return true;
         } catch (IOException e) {
             System.out.println("Error al eliminar instructor: " + e.getMessage());
+            return false;
         }
     }
 

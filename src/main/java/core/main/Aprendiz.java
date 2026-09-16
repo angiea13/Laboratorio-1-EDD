@@ -9,6 +9,6 @@ public record Aprendiz(String nombre, String cedula, String telefono,
     public Aprendiz {
         sesionesPorEspecialidad = sesionesPorEspecialidad == null
                 ? Map.of()
-                : Map.copyOf(new LinkedHashMap<>(sesionesPorEspecialidad));
+                : java.util.Collections.unmodifiableMap(new LinkedHashMap<>(sesionesPorEspecialidad));
     }
 }
